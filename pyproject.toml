@@ -1,0 +1,15 @@
+[project]
+name = "econoclasses"
+version = "0.1.0"
+description = "An economics analysis module for calculation, analysis and visualisation"
+authors = [{name = "Enrico Costa", email = "enriicoo@gmail.com"},]
+readme = 'README.md'
+license = {file = 'LICENSE'}
+requires-python = ">=3.12"
+
+[project.dependencies]
+pandas = ">=2.2.0"
+numpy = ">=1.26.4"
+scipy = ">=1.14.1"
+matplotlib = ">=3.8.4"
+sympy = ">=4.1.1"

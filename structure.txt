@@ -1,0 +1,29 @@
+econoclasses/
+├── __init__.py
+├── microeconomics/
+│   ├── __init__.py
+│   ├── equations.py
+│   ├── equilibrium.py
+│   ├── preferences.py
+│   └── production.py
+├── macroeconomics/
+│   ├── __init__.py
+│   ├── ad_as.py
+│   ├── is_lm_bp.py
+│   ├── phillips_curve.py
+│   └── okun_law.py
+├── plotting/
+│   ├── __init__.py
+│   └── plotter.py
+├── utils/
+│   ├── __init__.py
+│   ├── test_equations.py
+│   ├── test_equilibrium.py
+│   ├── test_preferences.py
+│   └── test_production.py
+└── examples/
+    ├── example_equations.py
+    ├── example_equilibrium.py
+    ├── example_discrimination.py
+    ├── example_preferences.py
+    └── example_production.py
