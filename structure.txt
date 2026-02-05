@@ -1,29 +1,177 @@
+# econoclasses v0.2.0 — Project Structure
+
+## Directory Layout
+
+```
 econoclasses/
-├── __init__.py
-├── microeconomics/
-│   ├── __init__.py
-│   ├── equations.py
-│   ├── equilibrium.py
-│   ├── preferences.py
-│   └── production.py
-├── macroeconomics/
-│   ├── __init__.py
-│   ├── ad_as.py
-│   ├── is_lm_bp.py
-│   ├── phillips_curve.py
-│   └── okun_law.py
+├── __init__.py                 # Package entry point, exports main classes
+│
+├── core/
+│   └── __init__.py             # Shared SymPy symbols (X, Y, Px, Py, I, K, L, w, r, etc.)
+│
+├── preferences/
+│   ├── __init__.py             # Module exports
+│   ├── forms.py                # Utility function expressions (7 forms + registry)
+│   ├── solvers.py              # Marshallian & Hicksian demand solvers
+│   └── utility.py              # Main Utility class
+│
+├── consumer/
+│   ├── __init__.py             # Module exports
+│   ├── agent.py                # Consumer class (preferences + income/endowment)
+│   └── market.py               # Market class (aggregation of consumers)
+│
+├── equilibrium/
+│   ├── __init__.py             # Module exports
+│   ├── exchange.py             # ExchangeEconomy: Edgeworth, contract curve, Walrasian eq
+│   └── partial.py              # PartialEquilibrium: supply/demand, surplus, tax analysis
+│
+├── production/
+│   └── __init__.py             # STUB for v0.4+ (isoquants, cost minimization, supply)
+│
 ├── plotting/
+│   ├── __init__.py             # Module exports
+│   ├── preferences.py          # Indifference curves, Slutsky, demand curves
+│   └── equilibrium.py          # Edgeworth box, supply/demand diagrams
+│
+├── education/
+│   └── __init__.py             # Derivations, explanations, LaTeX export
+│
+├── examples/
 │   ├── __init__.py
-│   └── plotter.py
-├── utils/
-│   ├── __init__.py
-│   ├── test_equations.py
-│   ├── test_equilibrium.py
-│   ├── test_preferences.py
-│   └── test_production.py
-└── examples/
-    ├── example_equations.py
-    ├── example_equilibrium.py
-    ├── example_discrimination.py
-    ├── example_preferences.py
-    └── example_production.py
+│   ├── five_friends.py         # Multi-consumer demand aggregation
+│   └── exchange_economy.py     # Edgeworth box and equilibrium
+│
+├── structure.txt               # This file
+└── README.md                   # Documentation
+```
+
+
+## Module Responsibilities
+
+### core/
+- Defines ALL SymPy symbols used throughout the package
+- Goods: X, Y, K, L, Q
+- Prices: Px, Py, P, w, r
+- Budget: I, M, omega_x, omega_y (endowments)
+- Parameters: alpha, beta, rho, gamma_x, gamma_y
+
+### preferences/
+- **forms.py**: Pure functions returning SymPy expressions
+  - cobb_douglas, perfect_substitutes, perfect_complements
+  - ces, quasilinear, stone_geary, translog
+  - FORMS registry + get_form() factory
+  
+- **solvers.py**: Demand computation
+  - DemandSolution dataclass
+  - Analytical Marshallian solvers (one per form)
+  - Analytical Hicksian solvers (where closed-form exists)
+  - Numerical fallbacks for custom utilities
+  
+- **utility.py**: Main Utility class
+  - Properties: expr, mrs, marginal utilities
+  - Demands: marshallian_demand, hicksian_demand, demand_at_prices
+  - Duality: indirect_utility, expenditure
+  - Elasticities: price, income, cross-price
+  - Decomposition: slutsky_decomposition
+
+### consumer/
+- **agent.py**: Consumer class
+  - Wraps Utility with income/endowment
+  - demand(prices), excess_demand(prices)
+  - Supports both fixed-income and endowment-based budget
+  
+- **market.py**: Market class
+  - List of Consumers
+  - aggregate_demand, individual_demands
+  - demand_schedule for plotting
+  - summary_table, price_change_analysis
+
+### equilibrium/
+- **exchange.py**: Two-consumer pure exchange
+  - ExchangeEconomy class
+  - find_equilibrium(): Walrasian equilibrium via Brent's method
+  - contract_curve(): Pareto efficient allocations
+  - is_pareto_efficient, is_in_core
+  - gains_from_trade
+  
+- **partial.py**: Single-market analysis
+  - PartialEquilibrium class
+  - find_equilibrium(): market clearing
+  - Consumer/producer surplus
+  - Tax analysis with deadweight loss
+  - Convenience: linear_demand, linear_supply
+
+### production/ (STUB)
+- Reserved for v0.4.0
+- Will mirror preferences/ structure
+- ProductionFunction, Firm, Industry classes
+
+### plotting/
+- **preferences.py**: 
+  - plot_indifference_curves
+  - plot_slutsky_decomposition
+  - plot_market_demand
+  
+- **equilibrium.py**:
+  - plot_edgeworth_box (with contract curve, equilibrium)
+  - plot_supply_demand (with surplus shading)
+
+### education/
+- DerivationStep, Derivation classes
+- derive_marshallian_demand
+- derive_exchange_equilibrium
+- explain_utility_type
+
+
+## What's Implemented (v0.3.0)
+
+✅ Preferences
+  - 7 utility forms with analytical demand
+  - Numerical fallback for custom forms
+  - Full elasticity analysis
+  - Slutsky decomposition
+
+✅ Consumer
+  - Individual consumer with income or endowment
+  - Market aggregation
+  - Demand schedules
+
+✅ Equilibrium
+  - Exchange economy (Edgeworth box)
+  - Walrasian equilibrium finder
+  - Contract curve computation
+  - Core detection
+  - Partial equilibrium (supply/demand)
+  - Tax analysis
+
+✅ Plotting
+  - Indifference curves
+  - Budget constraints
+  - Slutsky diagrams
+  - Edgeworth box
+  - Supply/demand curves
+
+✅ Education
+  - Step-by-step derivations
+  - Utility type explanations
+
+
+## What's Left Out (Future Work)
+
+### v0.4.0: Production
+- Production functions (isoquants)
+- Cost minimization
+- Profit maximization
+- Supply curves from first principles
+- Connect to partial equilibrium
+
+### v0.5.0: General Equilibrium
+- Multi-market clearing
+- Production + exchange
+- Welfare theorems
+
+### Future:
+- Macroeconomics module (IS-LM, AD-AS)
+- Game theory
+- Interactive Jupyter widgets
+- Web-based visualization
