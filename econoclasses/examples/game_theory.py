@@ -306,19 +306,12 @@ def example_plotting():
     plot_game_tree(game, ax=axes[1, 1], solution=solution)
     
     plt.tight_layout()
-    plt.savefig('/tmp/game_theory_plots.png', dpi=150, bbox_inches='tight')
-    print("Saved plots to /tmp/game_theory_plots.png")
-    
+    plt.show()
+
     # Oligopoly comparison
-    fig2, axes2 = plt.subplots(1, 3, figsize=(14, 5))
-    plot_oligopoly_comparison(a=100, b=1, c=10, ax=axes2[0])
-    # The function returns all axes, so we need to handle this differently
     plt.figure(figsize=(14, 5))
     plot_oligopoly_comparison(a=100, b=1, c=10)
-    plt.savefig('/tmp/oligopoly_comparison.png', dpi=150, bbox_inches='tight')
-    print("Saved oligopoly comparison to /tmp/oligopoly_comparison.png")
-    
-    plt.close('all')
+    plt.show()
 
 
 def run_all_examples():

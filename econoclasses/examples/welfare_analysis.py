@@ -8,8 +8,6 @@ Demonstrates:
 - Efficiency vs Equity tradeoff
 """
 
-import sys
-sys.path.insert(0, '/home/claude')
 
 from econoclasses import Utility, Consumer, ExchangeEconomy
 from econoclasses.welfare import (

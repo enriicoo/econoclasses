@@ -12,7 +12,7 @@ These conventions are shared with production plotting (isoquants).
 
 import numpy as np
 import matplotlib.pyplot as plt
-from typing import Optional, List, Tuple, Literal, Callable
+from typing import Optional, List, Tuple, Literal, Callable, Union
 from dataclasses import dataclass
 
 from ..preferences import Utility
@@ -184,6 +184,8 @@ def _plot_contour_core(
     return ax, cs, cmap_obj
 
 
+
+
 def _compute_centered_frame(
     x_star: float,
     y_star: float,
@@ -245,17 +247,54 @@ def plot_indifference_curves(
     show_equation: bool = False,
     title: Optional[str] = None,
     utility_levels: Optional[List[float]] = None,
-    label_curves: bool = False,
+    label_curves: Union[bool, Literal['interpolate', 'center']] = False,
     label_position: Literal['first', 'mid', 'last'] = 'mid',
+    label_direction: Literal['dynamic', 'horizontal', 'vertical', 'diagonal'] = 'dynamic',
 ) -> plt.Axes:
     """
     Plot indifference curves for a utility function.
 
-    Key features (matching v0.1.0 conventions):
+    Key features:
     - Optimal point centered at (0.5, 0.5) of frame
-    - Curves span 0.25-0.75 of diagonal
-    - Middle curve passes through optimal
-    - Background gradient (alpha 0.4), curves at colormap extremes (0.6-1.0)
+    - Middle curve passes through the optimal bundle
+    - Background gradient, curves at colormap extremes (0.6-1.0)
+
+    Parameters
+    ----------
+    utility : Utility
+        The utility function to plot.
+    ax : matplotlib Axes, optional
+        Axes to draw on. Creates a new figure if None.
+    x_range, y_range : (float, float), optional
+        Plot limits for each axis. Auto-computed from the optimal bundle if None.
+    style : PlotStyle, optional
+        Visual configuration (colormap, linewidth, number of curves, etc.).
+    show_budget : bool
+        Draw the budget constraint line.
+    show_optimal : bool
+        Mark the optimal consumption bundle and display an info box.
+    show_equation : bool
+        Show the utility function formula as the plot title (LaTeX).
+    title : str, optional
+        Custom plot title. Overrides show_equation.
+    utility_levels : list of float, optional
+        Explicit utility levels to draw. Auto-selected if None.
+    label_curves : False | True | 'interpolate' | 'center'
+        False          → no labels
+        True           → label every curve
+        'interpolate'  → label every other curve, middle always included
+        'center'       → label the middle curve only
+    label_position : 'first' | 'mid' | 'last'
+        Where along each curve path to place the label.
+        'first'  → ~25% along the path (near one end)
+        'mid'    → ~50% along the path (centre)
+        'last'   → ~75% along the path (near the other end)
+    label_direction : 'dynamic' | 'horizontal' | 'vertical' | 'diagonal'
+        Rotation of the label text.
+        'dynamic'    → follows the curve tangent (matplotlib default)
+        'horizontal' → always flat (0°)
+        'vertical'   → always upright (90°)
+        'diagonal'   → fixed 45° (bottom-left to top-right)
     """
     style = style or PlotStyle()
 
@@ -287,25 +326,47 @@ def plot_indifference_curves(
     )
 
     # Label curves if requested
-    if label_curves:
-        mid_idx = len(utility_levels) // 2
+    if label_curves is not False:
+        n = len(cs.allsegs)
+        mid = n // 2
+        if label_curves is True:
+            indices = list(range(n))
+        elif label_curves == 'center':
+            indices = [mid]
+        else:  # 'interpolate': every other, middle always included
+            indices = list(range(mid % 2, n, 2))
+
         label_points = []
-        for i, collection in enumerate(cs.collections):
-            if i == mid_idx:
-                for path in collection.get_paths():
-                    vertices = path.vertices
-                    if len(vertices) > 0:
-                        if label_position == 'first':
-                            idx = len(vertices) // 4
-                        elif label_position == 'last':
-                            idx = (len(vertices) // 4) * 3
-                        else:
-                            idx = len(vertices) // 2
-                        idx = min(idx, len(vertices) - 1)
-                        label_points.append(vertices[idx])
+        for i, segs in enumerate(cs.allsegs):
+            if i not in indices:
+                continue
+            for seg in segs:
+                if len(seg) > 0:
+                    if label_position == 'first':
+                        idx = len(seg) // 4
+                    elif label_position == 'last':
+                        idx = (len(seg) // 4) * 3
+                    else:
+                        idx = len(seg) // 2
+                    idx = min(idx, len(seg) - 1)
+                    label_points.append(seg[idx])
+                    break
 
         if label_points:
-            ax.clabel(cs, inline=True, fmt="%.2f", fontsize=9, manual=label_points)
+            labels = ax.clabel(cs, inline=True, fmt="%.2f", fontsize=16, manual=label_points)
+            for lbl in labels:
+                lbl.set_fontweight('bold')
+                if label_direction == 'horizontal':
+                    lbl.set_rotation(0)
+                elif label_direction == 'vertical':
+                    lbl.set_rotation(90)
+                elif label_direction == 'diagonal':
+                    lbl.set_rotation(45)
+
+    # Legend: text entries first so they appear at the top
+    if show_optimal:
+        ax.plot([], [], ' ', label=f'$P_x={utility.price_x:.2f}$   $P_y={utility.price_y:.2f}$')
+        ax.plot([], [], ' ', label=f'$X^*={x_star:.2f}$   $Y^*={y_star:.2f}$')
 
     # Budget constraint
     if show_budget:
@@ -314,14 +375,14 @@ def plot_indifference_curves(
         budget_y = (utility.income - utility.price_x * budget_x) / utility.price_y
         mask = (budget_y >= 0) & (budget_y <= y_range[1])
 
-        # Use inverse of mid-colormap for contrast
         mid_color = cmap_obj(0.5)
         inv_color = (1 - mid_color[0], 1 - mid_color[1], 1 - mid_color[2])
 
+        budget_label = (f'Budget   $U^*={u_star:.2f}$' if show_optimal else 'Budget')
         ax.plot(
             budget_x[mask], budget_y[mask],
             color=inv_color, linestyle=style.budget_linestyle,
-            linewidth=2.5, label='Budget'
+            linewidth=2.5, label=budget_label
         )
 
     # Optimal point
@@ -355,20 +416,6 @@ def plot_indifference_curves(
 
     if show_budget or show_optimal:
         ax.legend(loc='upper right')
-
-    # Info box with prices and optimal
-    if show_optimal:
-        info_lines = [
-            f"$P_x = {utility.price_x:.2f}$  |  $P_y = {utility.price_y:.2f}$",
-            f"$X^* = {x_star:.2f}$  |  $Y^* = {y_star:.2f}$",
-            f"$U^* = {u_star:.2f}$"
-        ]
-        info_text = "\n".join(info_lines)
-        ax.text(
-            0.02, 0.02, info_text, transform=ax.transAxes, fontsize=9,
-            verticalalignment='bottom', horizontalalignment='left',
-            bbox=dict(boxstyle='round,pad=0.3', facecolor='white', edgecolor='black', alpha=0.8)
-        )
 
     return ax
 

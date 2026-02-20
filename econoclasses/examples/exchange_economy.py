@@ -9,8 +9,6 @@ Demonstrates:
 - Gains from trade
 """
 
-import sys
-sys.path.insert(0, '/home/claude')
 
 from econoclasses import Utility, Consumer
 from econoclasses.equilibrium import ExchangeEconomy
@@ -126,15 +124,13 @@ print("=" * 70)
 fig1, ax1 = plt.subplots(figsize=(10, 8))
 plot_edgeworth_box(economy, ax=ax1, title="Alice (α=0.5) vs Bob (α=0.3)")
 fig1.tight_layout()
-fig1.savefig('/home/claude/econoclasses/examples/edgeworth_alice_bob.png', dpi=150)
-print("  → Saved: edgeworth_alice_bob.png")
+plt.show()
 
 # Plot 2: Charlie and Diana
 fig2, ax2 = plt.subplots(figsize=(10, 8))
 plot_edgeworth_box(economy2, ax=ax2, title="Charlie (Complements) vs Diana (CD)")
 fig2.tight_layout()
-fig2.savefig('/home/claude/econoclasses/examples/edgeworth_charlie_diana.png', dpi=150)
-print("  → Saved: edgeworth_charlie_diana.png")
+plt.show()
 
 print("\nDone!")
 plt.show()

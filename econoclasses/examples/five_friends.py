@@ -5,8 +5,6 @@ Demonstrates how different preference types lead to different choices,
 and how individual demands aggregate into market demand.
 """
 
-import sys
-sys.path.insert(0, '/home/claude')
 
 from econoclasses import Utility, Consumer, Market
 

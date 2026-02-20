@@ -5,12 +5,9 @@ Demonstrates the strategic curve selection system where:
 - Curves are always centered on the optimal/equilibrium point
 - The middle curve passes exactly through the optimum
 - For Edgeworth box: curves meeting at equilibrium are always visible
-
-Run this file to generate all plots for review.
 """
 
 import matplotlib.pyplot as plt
-import numpy as np
 
 from econoclasses import (
     Utility, Consumer, Market,
@@ -31,15 +28,9 @@ from econoclasses.plotting import (
 
 
 def main():
-    """Generate all plots for review."""
-
     print("=" * 70)
     print("ECONOCLASSES PLOTTING SHOWCASE")
-    print("Strategic curve selection: optimal point always on middle curve")
     print("=" * 70)
-
-    # Create output directory reference
-    output_dir = "/home/enrico/PycharmProjects/econoclasses/econoclasses/examples"
 
     # =========================================================================
     # 1. INDIFFERENCE CURVES (preferences.py)
@@ -54,12 +45,13 @@ def main():
         show_budget=True,
         show_optimal=True,
         show_equation=True,  # LaTeX equation in title
-        style=PlotStyle(num_curves=5, show_colorbar=True, background_alpha=0.7),
+        style=PlotStyle(num_curves=5, show_colorbar=True, background_alpha=1.0),
+        label_curves=True,
+        label_position='last',
+        label_direction='horizontal',
     )
     fig.tight_layout()
-    fig.savefig(f'{output_dir}/01_indifference_curves.png', dpi=150)
-    plt.close(fig)
-    print("  -> Saved: 01_indifference_curves.png")
+    plt.show()
 
     # =========================================================================
     # 2. INDIFFERENCE CURVES - Different utility types
@@ -69,26 +61,31 @@ def main():
     fig, axes = plt.subplots(2, 2, figsize=(14, 12))
 
     utilities = [
-        ('Cobb-Douglas (a=0.5)', Utility('cobb-douglas', alpha=0.5, beta=0.5, income=100, price_x=2, price_y=3)),
-        ('CES (rho=0.5)', Utility('ces', alpha=0.5, beta=0.5, rho=0.5, income=100, price_x=2, price_y=3)),
-        ('Quasilinear', Utility('quasilinear', alpha=0.5, income=100, price_x=2, price_y=3)),
-        ('Perfect Substitutes', Utility('perfect-substitutes', alpha=0.6, beta=0.4, income=100, price_x=2, price_y=3)),
+        ('Cobb-Douglas (a=0.5)', Utility('cobb-douglas', alpha=0.5, beta=0.5, income=100, price_x=2, price_y=3),
+         True, 'horizontal'),
+        ('CES (rho=0.5)', Utility('ces', alpha=0.5, beta=0.5, rho=0.5, income=100, price_x=2, price_y=3),
+         'center', 'horizontal'),
+        ('Quasilinear', Utility('quasilinear', alpha=0.5, income=100, price_x=2, price_y=3),
+         'interpolate', 'diagonal'),
+        ('Perfect Substitutes', Utility('perfect-substitutes', alpha=0.6, beta=0.4, income=100, price_x=2, price_y=3),
+         'interpolate', 'diagonal'),
     ]
 
-    for ax, (name, util) in zip(axes.flat, utilities):
+    for ax, (name, util, lcur, ldir) in zip(axes.flat, utilities):
         plot_indifference_curves(
             util, ax=ax,
             show_budget=True,
             show_optimal=True,
-            style=PlotStyle(num_curves=5),
-            title=name
+            style=PlotStyle(num_curves=5, background_alpha=1.0),
+            title=name,
+            label_curves=lcur,
+            label_position='last',
+            label_direction=ldir,
         )
 
     fig.suptitle("Strategic Curve Selection Across Utility Types", fontsize=14, y=1.02)
     fig.tight_layout()
-    fig.savefig(f'{output_dir}/02_indifference_types.png', dpi=150)
-    plt.close(fig)
-    print("  -> Saved: 02_indifference_types.png")
+    plt.show()
 
     # =========================================================================
     # 3. SLUTSKY DECOMPOSITION
@@ -100,9 +97,7 @@ def main():
     fig, ax = plt.subplots(figsize=(10, 8))
     plot_slutsky_decomposition(utility_slutsky, new_price_x=4, ax=ax)
     fig.tight_layout()
-    fig.savefig(f'{output_dir}/03_slutsky_decomposition.png', dpi=150)
-    plt.close(fig)
-    print("  -> Saved: 03_slutsky_decomposition.png")
+    plt.show()
 
     # =========================================================================
     # 4. MARKET DEMAND (Price-Quantity space)
@@ -119,9 +114,7 @@ def main():
     fig, ax = plt.subplots(figsize=(10, 8))
     plot_market_demand(market, good='X', ax=ax, show_individual=True)
     fig.tight_layout()
-    fig.savefig(f'{output_dir}/04_market_demand.png', dpi=150)
-    plt.close(fig)
-    print("  -> Saved: 04_market_demand.png")
+    plt.show()
 
     # =========================================================================
     # 4b. AGGREGATE PREFERENCES (Goods space - X,Y)
@@ -140,9 +133,7 @@ def main():
     fig, ax = plt.subplots(figsize=(10, 8))
     plot_market_preferences(market_prefs, prices=(2.0, 1.0), ax=ax)
     fig.tight_layout()
-    fig.savefig(f'{output_dir}/04b_aggregate_preferences.png', dpi=150)
-    plt.close(fig)
-    print("  -> Saved: 04b_aggregate_preferences.png")
+    plt.show()
 
     # =========================================================================
     # 5. EDGEWORTH BOX
@@ -169,9 +160,7 @@ def main():
         n_ic=3,
     )
     fig.tight_layout()
-    fig.savefig(f'{output_dir}/05_edgeworth_box.png', dpi=150)
-    plt.close(fig)
-    print("  -> Saved: 05_edgeworth_box.png")
+    plt.show()
 
     # =========================================================================
     # 6. SUPPLY AND DEMAND
@@ -189,9 +178,7 @@ def main():
     fig, ax = plt.subplots(figsize=(10, 8))
     plot_supply_demand(partial_eq, ax=ax, show_surplus=True)
     fig.tight_layout()
-    fig.savefig(f'{output_dir}/06_supply_demand.png', dpi=150)
-    plt.close(fig)
-    print("  -> Saved: 06_supply_demand.png")
+    plt.show()
 
     # =========================================================================
     # 7. ISOQUANTS
@@ -210,12 +197,11 @@ def main():
         show_expansion_path=True,
         show_optimal=True,
         wage=5, rental=10,
+        style=PlotStyle(background_alpha=1.0),
         title="Isoquants: 5 curves, Q=5 on middle"
     )
     fig.tight_layout()
-    fig.savefig(f'{output_dir}/07_isoquants.png', dpi=150)
-    plt.close(fig)
-    print("  -> Saved: 07_isoquants.png")
+    plt.show()
 
     # =========================================================================
     # 8. ROBINSON CRUSOE
@@ -232,23 +218,7 @@ def main():
     fig, ax = plt.subplots(figsize=(10, 8))
     plot_robinson_crusoe(rc, ax=ax, n_ic=3)
     fig.tight_layout()
-    fig.savefig(f'{output_dir}/08_robinson_crusoe.png', dpi=150)
-    plt.close(fig)
-    print("  -> Saved: 08_robinson_crusoe.png")
-
-    # =========================================================================
-    # SUMMARY
-    # =========================================================================
-    print("\n" + "=" * 70)
-    print("SHOWCASE COMPLETE")
-    print("=" * 70)
-    print(f"\nAll plots saved to: {output_dir}/")
-    print("\nKey features demonstrated:")
-    print("  - Strategic curve selection: optimal point always on middle curve")
-    print("  - Edgeworth box: both consumers' curves meet at equilibrium")
-    print("  - Isoquants: target output level is the middle isoquant")
-    print("  - Robinson Crusoe: optimal consumption/leisure on middle IC")
-    print("\nReview the PNG files and provide feedback!")
+    plt.show()
 
 
 if __name__ == "__main__":

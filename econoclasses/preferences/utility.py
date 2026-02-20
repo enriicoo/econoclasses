@@ -19,14 +19,72 @@ from .solvers import (
 class Utility:
     """
     A utility function with methods for demand analysis, elasticities, and decomposition.
-    
+
+    Parameters
+    ----------
+    form : str or sympy.Expr
+        The utility function form. Use one of the built-in string names below,
+        or pass a custom SymPy expression in terms of X and Y.
+
+        Built-in forms and their keyword parameters
+        -------------------------------------------
+        'cobb-douglas'        U = X^α · Y^β
+            alpha (float):  exponent on X  (default 0.5)
+            beta  (float):  exponent on Y  (default 0.5)
+
+        'perfect-substitutes' U = αX + βY
+            alpha (float):  weight on X  (default 1)
+            beta  (float):  weight on Y  (default 1)
+
+        'perfect-complements' U = min(αX, βY)
+            alpha (float):  coefficient on X  (default 1)
+            beta  (float):  coefficient on Y  (default 1)
+
+        'ces'                 U = [α X^ρ + (1-α) Y^ρ]^(1/ρ)
+            alpha (float):  share parameter, 0 < α < 1  (default 0.5)
+            rho   (float):  substitution parameter ρ ≠ 0  (default 0.5)
+                            ρ → 0 → Cobb-Douglas, ρ = 1 → perfect substitutes,
+                            ρ → -∞ → perfect complements
+
+        'quasilinear'         U = X + α·ln(Y)  or  U = α·ln(X) + Y
+            alpha     (float):  coefficient on the log term  (default 1)
+            numeraire (str):    'X' → X is linear, Y is log  (default 'X')
+                                'Y' → Y is linear, X is log
+
+        'stone-geary'         U = (X - γx)^α · (Y - γy)^β
+            alpha   (float):  exponent on (X - γx)  (default 0.5)
+            beta    (float):  exponent on (Y - γy)  (default 0.5)
+            gamma_x (float):  subsistence quantity of X  (default 0)
+            gamma_y (float):  subsistence quantity of Y  (default 0)
+
+        'translog'            ln U = α₀ + αx·ln X + αy·ln Y + ½βxx·(ln X)² + ½βyy·(ln Y)² + βxy·ln X·ln Y
+            alpha_0 (float):  intercept  (default 0)
+            alpha_x (float):  first-order X term  (default 0.5)
+            alpha_y (float):  first-order Y term  (default 0.5)
+            beta_xx (float):  second-order X term  (default 0)
+            beta_yy (float):  second-order Y term  (default 0)
+            beta_xy (float):  cross term  (default 0)
+
+    income : float
+        Consumer's budget / income (default 100).
+    price_x : float
+        Price of good X (default 1).
+    price_y : float
+        Price of good Y (default 1).
+    **params
+        Form-specific parameters as listed above.
+
     Examples
     --------
     >>> u = Utility('cobb-douglas', alpha=0.3, beta=0.7, income=100, price_x=2, price_y=3)
     >>> u.marshallian_demand
-    (15.0, 23.333...)
+    (15.0, 23.33...)
+
+    >>> u = Utility('ces', alpha=0.5, rho=0.5, income=100, price_x=2, price_y=3)
+    >>> u = Utility('quasilinear', alpha=2, numeraire='Y', income=50, price_x=1, price_y=2)
+    >>> u = Utility('stone-geary', alpha=0.5, beta=0.5, gamma_x=5, gamma_y=3, income=100)
     """
-    
+
     def __init__(
         self,
         form: Union[str, sp.Expr],

@@ -8,8 +8,6 @@ Demonstrates:
 - Decentralization (First Welfare Theorem in action)
 """
 
-import sys
-sys.path.insert(0, '/home/claude')
 
 from econoclasses import Utility, ProductionFunction, RobinsonCrusoe
 from econoclasses.plotting import plot_robinson_crusoe, plot_ppf
@@ -135,7 +133,6 @@ plot_robinson_crusoe(rc, ax=axes[0], title='Robinson Crusoe: PPF and Indifferenc
 plot_ppf(rc, ax=axes[1])
 
 plt.tight_layout()
-plt.savefig('/home/claude/econoclasses/examples/robinson_crusoe_plot.png', dpi=150)
-print("Saved: robinson_crusoe_plot.png")
+plt.show()
 
 print("\nDone!")

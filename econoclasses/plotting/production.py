@@ -12,7 +12,7 @@ Key conventions (SHARED with preferences - uses same core logic):
 
 import numpy as np
 import matplotlib.pyplot as plt
-from typing import Optional, Tuple, List
+from typing import Optional, Tuple, List, Literal, Union
 
 from ..production import ProductionFunction, Firm, Industry
 from .preferences import (
@@ -38,32 +38,53 @@ def plot_isoquants(
     style: Optional[PlotStyle] = None,
     figsize: Tuple[int, int] = (8, 6),
     title: Optional[str] = None,
+    label_curves: Union[bool, Literal['interpolate', 'center']] = True,
+    label_position: Literal['first', 'mid', 'last'] = 'mid',
+    label_direction: Literal['dynamic', 'horizontal', 'vertical', 'diagonal'] = 'dynamic',
 ) -> plt.Axes:
     """
     Plot isoquants for a production function.
 
-    Uses the SAME core logic as plot_indifference_curves (shared via _plot_contour_core):
-    - Optimal point centered at (0.5, 0.5) of frame
-    - Curves span 0.25-0.75 of diagonal
-    - Middle curve passes through optimal
-    - Background gradient (alpha 0.4), curves at colormap extremes (0.6-1.0)
-
     Parameters
     ----------
     tech : ProductionFunction
-        The production technology.
-    Q_levels : list, optional
-        Output levels to plot. If None, auto-selected strategically.
+        The production technology to plot.
+    ax : matplotlib Axes, optional
+        Axes to draw on. Creates a new figure if None.
+    K_range, L_range : (float, float), optional
+        Plot limits for capital and labour. Auto-computed if None.
+    Q_levels : list of float, optional
+        Explicit output levels to draw. Auto-selected if None.
     show_expansion_path : bool
-        If True, show cost-minimizing K/L ratio as expansion path.
+        Draw the cost-minimising K/L expansion path.
     show_optimal : bool
-        If True, show the cost-minimizing point for Q_target.
+        Mark the cost-minimising point for Q_target and display an info box.
     Q_target : float, optional
-        Target output level for optimal point. If None, uses default.
+        Target output for centering and the optimal point. Defaults to output at (5, 5).
+    wage : float
+        Cost of one unit of labour (used for cost minimisation, default 5).
+    rental : float
+        Cost of one unit of capital (used for cost minimisation, default 10).
     num_curves : int
-        Number of isoquants to display (default 5, middle one at optimal).
+        Number of isoquants to display (default 5, middle one at Q_target).
     style : PlotStyle, optional
-        Plot styling configuration.
+        Visual configuration (colormap, linewidth, background alpha, etc.).
+    label_curves : False | True | 'interpolate' | 'center'
+        False          → no labels
+        True           → label every curve
+        'interpolate'  → label every other curve, middle always included
+        'center'       → label the middle curve only
+    label_position : 'first' | 'mid' | 'last'
+        Where along each curve path to place the label.
+        'first'  → ~25% along the path (near one end)
+        'mid'    → ~50% along the path (centre)
+        'last'   → ~75% along the path (near the other end)
+    label_direction : 'dynamic' | 'horizontal' | 'vertical' | 'diagonal'
+        Rotation of the label text.
+        'dynamic'    → follows the curve tangent (matplotlib default)
+        'horizontal' → always flat (0°)
+        'vertical'   → always upright (90°)
+        'diagonal'   → fixed 45° (bottom-left to top-right)
     """
     style = style or PlotStyle()  # Uses viridis by default (matching v0.1.0)
 
@@ -104,8 +125,43 @@ def plot_isoquants(
         colorbar_label='Q',
     )
 
-    # Add contour labels for isoquants
-    ax.clabel(cs, inline=True, fontsize=8, fmt='Q=%.1f')
+    # Label isoquants with custom placement
+    if label_curves is not False:
+        n = len(cs.allsegs)
+        mid = n // 2
+        if label_curves is True:
+            indices = list(range(n))
+        elif label_curves == 'center':
+            indices = [mid]
+        else:  # 'interpolate': every other, middle always included
+            indices = list(range(mid % 2, n, 2))
+
+        label_points = []
+        for i, segs in enumerate(cs.allsegs):
+            if i not in indices:
+                continue
+            for seg in segs:
+                if len(seg) > 0:
+                    if label_position == 'first':
+                        idx = len(seg) // 4
+                    elif label_position == 'last':
+                        idx = (len(seg) // 4) * 3
+                    else:
+                        idx = len(seg) // 2
+                    idx = min(idx, len(seg) - 1)
+                    label_points.append(seg[idx])
+                    break
+
+        if label_points:
+            labels = ax.clabel(cs, inline=True, fontsize=16, fmt='%.1f', manual=label_points)
+            for lbl in labels:
+                lbl.set_fontweight('bold')
+                if label_direction == 'horizontal':
+                    lbl.set_rotation(0)
+                elif label_direction == 'vertical':
+                    lbl.set_rotation(90)
+                elif label_direction == 'diagonal':
+                    lbl.set_rotation(45)
 
     # Expansion path (cost-minimizing K/L combinations)
     if show_expansion_path:
